@@ -10,7 +10,7 @@ import '../../utility/Helper.dart';
 class NewsDetailsScreen extends StatefulWidget {
   final ItemModel item;
 
-  const NewsDetailsScreen({required this.item, super.key});
+  const NewsDetailsScreen({required this.item, Key? key}) : super(key: key);
 
   @override
   State<NewsDetailsScreen> createState() => _NewsDetailsScreenState();
@@ -19,14 +19,14 @@ class NewsDetailsScreen extends StatefulWidget {
 class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   final CarouselController carouselController = CarouselController();
   int currentIndex = 0;
-  List imageList = [
-    {"id": 1, "image_path": 'http://via.placeholder.com/350x150'},
-    {"id": 2, "image_path": 'http://via.placeholder.com/350x150'},
+  List<Map<String, String>> imageList = [
+    {"id": "1", "image_path": 'http://via.placeholder.com/350x150'},
+    {"id": "2", "image_path": 'http://via.placeholder.com/350x150'},
   ];
   bool isWebViewVisible = false;
   bool isLoading = false;
 
-  void _showWebView() {
+  void _toggleWebView() {
     setState(() {
       isWebViewVisible = !isWebViewVisible;
       if (isWebViewVisible) {
@@ -37,6 +37,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    MediaQuery.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -54,80 +55,101 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
             fontWeight: FontWeight.w500,
           ),
         ),
+        actions: [
+          if(isWebViewVisible == true)...[
+            TextButton(
+              onPressed: _toggleWebView,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                elevation: 0,
+                splashFactory: NoSplash.splashFactory,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                alignment: Alignment.centerLeft,
+              ),
+              child: const Text(
+                'Read less',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.blue,
+                ),
+              )
+
+            ),
+          ]
+
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
+      body: Stack(
+        children: [
+          Visibility(
+            visible: !isWebViewVisible,
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
                             color: Colors.black,
-                            borderRadius: BorderRadius.circular(4)),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.category_outlined,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                            const SizedBox(
-                              width: 4,
-                            ),
-                            Text(
-                              widget.item.type.toString(),
-                              maxLines: 4,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.category_outlined,
                                 color: Colors.white,
+                                size: 16,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.item.type ?? '',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(
-                        convertUnixToHumanReadable(widget.item.time ?? 0),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.blueGrey,
+                        Text(
+                          convertUnixToHumanReadable(widget.item.time ?? 0),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.blueGrey,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.item.text.toString(),
-                    maxLines: 4,
-                    textAlign: TextAlign.justify,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  InkWell(
-                    onTap: () {},
-                    child: CarouselSlider(
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.item.text ?? '',
+                      maxLines: 10,
+                      textAlign: TextAlign.justify,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    CarouselSlider(
                       items: imageList
                           .map(
                             (item) => Image.network(
-                              item['image_path'],
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                            ),
-                          )
+                          item['image_path']!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                      )
                           .toList(),
                       carouselController: carouselController,
                       options: CarouselOptions(
@@ -142,135 +164,130 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                         },
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: imageList.asMap().entries.map((entry) {
-                      return GestureDetector(
-                        onTap: () =>
-                            carouselController.animateToPage(entry.key),
-                        child: Container(
-                          width: currentIndex == entry.key ? 17 : 7,
-                          height: 7.0,
-                          margin: const EdgeInsets.symmetric(horizontal: 3.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: currentIndex == entry.key
-                                ? Colors.black
-                                : Colors.blueGrey,
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: imageList.asMap().entries.map((entry) {
+                        return GestureDetector(
+                          onTap: () => carouselController.animateToPage(entry.key),
+                          child: Container(
+                            width: currentIndex == entry.key ? 17 : 7,
+                            height: 7.0,
+                            margin: const EdgeInsets.symmetric(horizontal: 3.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: currentIndex == entry.key ? Colors.black : Colors.blueGrey,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Text(
+                          ' by ${widget.item.by ?? ''}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.blueGrey,
                           ),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Text(
-                        ' by ${widget.item.by.toString()}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                        const Spacer(),
+                        const Icon(
+                          CupertinoIcons.text_bubble,
+                          size: 24,
                           color: Colors.blueGrey,
                         ),
-                      ),
-                      const Spacer(),
-                      const Icon(
-                        CupertinoIcons.text_bubble,
-                        size: 24,
-                        color: Colors.blueGrey,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.item.descendants.toString(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
+                        const SizedBox(width: 8),
+                        Text(
+                          (widget.item.descendants ?? 0).toString(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        const Icon(
+                          Icons.poll_outlined,
+                          size: 24,
                           color: Colors.blueGrey,
                         ),
-                      ),
-                      const SizedBox(width: 20),
-                      const Icon(
-                        Icons.poll_outlined,
-                        size: 24,
-                        color: Colors.blueGrey,
-                      ),
-                      Text(
-                        widget.item.score.toString(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.blueGrey,
+                        Text(
+                          (widget.item.score ?? 0).toString(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.blueGrey,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  TextButton(
-                    onPressed: _showWebView,
-                    style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: _toggleWebView,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                         elevation: 0,
                         splashFactory: NoSplash.splashFactory,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        alignment: Alignment.centerLeft),
-                    child: isWebViewVisible
-                        ? const Text(
-                            'Read less',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.blue,
-                            ),
-                          )
-                        : const Text(
-                            'Read more',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.blue,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: isWebViewVisible,
-              child: Column(
-                children: [
-                  if (isLoading)
-                    const Center(child: CircularProgressIndicator()),
-                  SizedBox(
-                    height: 400,
-                    child: InAppWebView(
-                      initialUrlRequest: URLRequest(
-                        url:
-                            Uri.parse(widget.item.url ?? 'https://example.com'),
+                        alignment: Alignment.centerLeft,
                       ),
-                      onLoadStart: (controller, url) {
-                        setState(() {
-                          isLoading = true;
-                        });
-                      },
-                      onLoadStop: (controller, url) {
-                        setState(() {
-                          isLoading = false;
-                        });
-                      },
-                      onLoadError: (controller, url, code, message) {
-                        setState(() {
-                          isLoading = false;
-                        });
-                      },
+                      child: isWebViewVisible
+                          ? const Text(
+                        'Read less',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.blue,
+                        ),
+                      )
+                          : const Text(
+                        'Read more',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.blue,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          Visibility(
+            visible: isWebViewVisible,
+            child: Column(
+              children: [
+                if (isLoading) const Center(child: CircularProgressIndicator()),
+                Expanded(
+                  child: InAppWebView(
+                    initialUrlRequest: URLRequest(
+                      url: Uri.parse(widget.item.url ?? 'https://flutter.dev'),
+                    ),
+                    onLoadStart: (controller, url) {
+                      setState(() {
+                        isLoading = true;
+                      });
+                    },
+                    onLoadStop: (controller, url) {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    },
+                    onLoadError: (controller, url, code, message) {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
